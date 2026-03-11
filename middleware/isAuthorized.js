@@ -23,7 +23,12 @@ const isAuthorized = async (req, res, next) => {
       return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
 
-    req.user = user;
+    //  FIXED: Add userId to req.user for postController access
+    req.user = {
+      ...user.toObject ? user.toObject() : user,
+      userId: user._id //  Add this so postController can access req.user.userId
+    };
+
     next();
   } catch (err) {
     res.status(401).json({ error: 'Token invalide' });

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détails du Post - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  
+  <div class="dashboard-container">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="main-content">
+      <header class="page-header">
+        <div class="page-header-left">
+          <a href="/admin/posts" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </div>
+        <div>
+          <h1><i class="fas fa-newspaper"></i> Détails du Post</h1>
+          <p>ID: <code><%= post._id %></code></p>
+        </div>
+      </header>
+
+      <% if (success && success.length > 0) { %>
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle"></i> <%= success %>
+        </div>
+      <% } %>
+      <% if (error && error.length > 0) { %>
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle"></i> <%= error %>
+        </div>
+      <% } %>
+
+      <div class="detail-grid">
+        <!-- Main Info Card -->
+        <div class="detail-card main-info">
+          <div class="card-header">
+            <h2><i class="fas fa-info-circle"></i> Informations Générales</h2>
+            <span class="badge badge-<%= post.status %>">
+              <%= post.status %>
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="info-row">
+              <strong><i class="fas fa-tag"></i> Type:</strong>
+              <span class="badge badge-type-<%= post.type %>">
+                <i class="fas fa-<%= post.type === 'liveLocation' ? 'map-marker-alt' : 'comment-alt' %>"></i>
+                <%= post.type === 'liveLocation' ? 'Live Location' : 'Community Post' %>
+              </span>
+            </div>
+
+            <% if (post.title) { %>
+              <div class="info-row">
+                <strong><i class="fas fa-heading"></i> Titre:</strong>
+                <span><%= post.title %></span>
+              </div>
+            <% } %>
+
+            <% if (post.description) { %>
+              <div class="info-row">
+                <strong><i class="fas fa-align-left"></i> Description:</strong>
+                <p class="description"><%= post.description %></p>
+              </div>
+            <% } %>
+
+            <div class="info-row">
+              <strong><i class="fas fa-bus"></i> Bus:</strong>
+              <span class="badge badge-bus"><%= post.bus.number %></span>
+            </div>
+
+            <div class="info-row">
+              <strong><i class="fas fa-calendar-alt"></i> Créé le:</strong>
+              <span><%= new Date(post.createdAt).toLocaleString('fr-FR') %></span>
+            </div>
+
+            <% if (post.type === 'liveLocation') { %>
+              <div class="info-row">
+                <strong><i class="fas fa-map-pin"></i> Coordonnées:</strong>
+                <div class="coordinates">
+                  <span><strong>Latitude:</strong> <%= post.lat %></span>
+                  <span><strong>Longitude:</strong> <%= post.long %></span>
+                  <a href="https://www.google.com/maps?q=<%= post.lat %>,<%= post.long %>" target="_blank" class="btn btn-sm btn-info">
+                    <i class="fas fa-map-marked-alt"></i> Voir sur Google Maps
+                  </a>
+                </div>
+              </div>
+            <% } %>
+
+            <% if (post.upvotes !== undefined) { %>
+              <div class="info-row">
+                <strong><i class="fas fa-chart-bar"></i> Votes:</strong>
+                <div class="votes-display">
+                  <span class="upvotes"><i class="fas fa-arrow-up"></i> <%= post.upvotes || 0 %> upvotes</span>
+                  <span class="downvotes"><i class="fas fa-arrow-down"></i> <%= post.downvotes || 0 %> downvotes</span>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Author Card -->
+        <div class="detail-card author-info">
+          <div class="card-header">
+            <h2><i class="fas fa-user"></i> Auteur</h2>
+          </div>
+          <div class="card-body">
+            <div class="author-profile">
+              <i class="fas fa-user-circle fa-4x"></i>
+              <div>
+                <h3><%= post.author.nickname %></h3>
+                <p><%= post.author.email %></p>
+                <span class="badge badge-role-<%= post.author.role %>">
+                  <i class="fas fa-<%= post.author.role === 'admin' ? 'user-shield' : 'user' %>"></i>
+                  <%= post.author.role %>
+                </span>
+              </div>
+            </div>
+            <div class="info-row">
+              <strong><i class="fas fa-calendar-plus"></i> Membre depuis:</strong>
+              <span><%= new Date(post.author.createdAt).toLocaleDateString('fr-FR') %></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions Card -->
+        <% if (post.status === 'proposé') { %>
+          <div class="detail-card actions-card">
+            <div class="card-header">
+              <h2><i class="fas fa-cogs"></i> Actions</h2>
+            </div>
+            <div class="card-body">
+              <form action="/admin/posts/<%= post._id %>/status" method="POST" style="margin-bottom: 1rem;">
+                <input type="hidden" name="status" value="validé">
+                <button type="submit" class="btn btn-success btn-block">
+                  <i class="fas fa-check"></i> Valider ce post
+                </button>
+              </form>
+              <form action="/admin/posts/<%= post._id %>/status" method="POST" style="margin-bottom: 1rem;">
+                <input type="hidden" name="status" value="rejeté">
+                <button type="submit" class="btn btn-danger btn-block">
+                  <i class="fas fa-times"></i> Rejeter ce post
+                </button>
+              </form>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Reports Card -->
+        <% if (reports && reports.length > 0) { %>
+          <div class="detail-card reports-card">
+            <div class="card-header">
+              <h2><i class="fas fa-flag"></i> Signalements (<%= reports.length %>)</h2>
+            </div>
+            <div class="card-body">
+              <% reports.forEach(report => { %>
+                <div class="report-item">
+                  <div class="report-header">
+                    <div>
+                      <strong><%= report.reporter.nickname %></strong>
+                      <small><%= report.reporter.email %></small>
+                    </div>
+                    <span class="badge badge-<%= report.status.replace(' ', '-') %>">
+                      <%= report.status %>
+                    </span>
+                  </div>
+                  <div class="report-body">
+                    <p><strong>Raison:</strong> <%= report.reason %></p>
+                    <% if (report.message) { %>
+                      <p><strong>Message:</strong> <%= report.message %></p>
+                    <% } %>
+                    <small><i class="fas fa-clock"></i> <%= new Date(report.date).toLocaleString('fr-FR') %></small>
+                  </div>
+                  <div class="report-actions">
+                    <a href="/admin/reports/<%= report._id %>" class="btn btn-sm btn-info">
+                      <i class="fas fa-eye"></i> Détails
+                    </a>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

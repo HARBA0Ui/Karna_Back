@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Signalements - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+  <%- include('../partials/navbar') %>
+
+    <div class="dashboard-container">
+      <%- include('../partials/sidebar') %>
+
+        <main class="main-content">
+          <header class="page-header">
+            <h1><i class="fas fa-flag"></i> Gestion des Signalements</h1>
+            <p>Modérer les signalements des utilisateurs</p>
+          </header>
+
+          <% if (success && success.length> 0) { %>
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle"></i>
+              <%= success %>
+            </div>
+            <% } %>
+              <% if (error && error.length> 0) { %>
+                <div class="alert alert-danger">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <%= error %>
+                </div>
+                <% } %>
+
+                  <div class="filters-bar">
+                    <form method="GET" action="/admin/reports" class="filter-form">
+                      <div class="filter-group">
+                        <label for="status"><i class="fas fa-filter"></i> Statut:</label>
+                        <select name="status" id="status" onchange="this.form.submit()">
+                          <option value="en attente" <%=!currentStatus || currentStatus==='en attente' ? 'selected' : ''
+                            %>>En attente</option>
+                          <option value="validé" <%=currentStatus==='validé' ? 'selected' : '' %>>Validé</option>
+                          <option value="rejeté" <%=currentStatus==='rejeté' ? 'selected' : '' %>>Rejeté</option>
+                        </select>
+                      </div>
+
+                      <% if (currentStatus && currentStatus !=='en attente' ) { %>
+                        <a href="/admin/reports" class="btn btn-secondary">
+                          <i class="fas fa-undo"></i> Réinitialiser
+                        </a>
+                        <% } %>
+                    </form>
+                  </div>
+
+
+                  <div class="table-container">
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Type</th>
+                          <th>Raison</th>
+                          <th>Message</th>
+                          <th>Reporter</th>
+                          <th>Post Signalé</th>
+                          <th>Statut</th>
+                          <th>Date</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% if (reports.length===0) { %>
+                          <tr>
+                            <td colspan="9" class="text-center">
+                              <i class="fas fa-inbox"></i> Aucun signalement trouvé
+                            </td>
+                          </tr>
+                          <% } else { %>
+                            <% reports.forEach(report=> { %>
+                              <tr>
+                                <td><code><%= report._id.toString().slice(-6) %></code></td>
+                                <td>
+                                  <span class="badge badge-type-<%= report.reportType %>">
+                                    <i
+                                      class="fas fa-<%= report.reportType === 'location' ? 'map-marker-alt' : 'comment-alt' %>"></i>
+                                    <%= report.reportType %>
+                                  </span>
+                                </td>
+                                <td><strong>
+                                    <%= report.reason %>
+                                  </strong></td>
+                                <td>
+                                  <% if (report.message) { %>
+                                    <small>
+                                      <%= report.message.substring(0, 40) %>
+                                        <%= report.message.length> 40 ? '...' : '' %>
+                                    </small>
+                                    <% } else { %>
+                                      <em class="text-muted">Aucun message</em>
+                                      <% } %>
+                                </td>
+                                <td>
+                                  <div class="user-info-cell">
+                                    <i class="fas fa-user-circle"></i>
+                                    <div>
+                                      <strong>
+                                        <%= report.reporter.nickname %>
+                                      </strong>
+                                      <small>
+                                        <%= report.reporter.email %>
+                                      </small>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <% if (report.reportedPost) { %>
+                                    <div class="post-preview">
+                                      <strong>
+                                        <%= report.reportedPost.title || 'Live Location' %>
+                                      </strong>
+                                      <small>par <%= report.reportedPost.author?.nickname || 'Inconnu' %></small>
+                                    </div>
+                                    <% } else { %>
+                                      <em class="text-muted">Post supprimé</em>
+                                      <% } %>
+                                </td>
+                                <td>
+                                  <span class="badge badge-<%= report.status.replace(' ', '-') %>">
+                                    <%= report.status %>
+                                  </span>
+                                </td>
+                                <td>
+                                  <%= new Date(report.date).toLocaleDateString('fr-FR') %>
+                                </td>
+                                <td>
+                                  <div class="action-buttons">
+                                    <% if (report.status==='en attente' ) { %>
+                                      <button class="btn btn-sm btn-success"
+                                        onclick="updateReportStatus('<%= report._id %>', 'validé')">
+                                        <i class="fas fa-check"></i> Valider
+                                      </button>
+                                      <button class="btn btn-sm btn-danger"
+                                        onclick="updateReportStatus('<%= report._id %>', 'rejeté')">
+                                        <i class="fas fa-times"></i> Rejeter
+                                      </button>
+                                      <% } %>
+                                        <button class="btn btn-sm btn-info"
+                                          onclick="viewReportDetails('<%= report._id %>')">
+                                          <i class="fas fa-eye"></i>
+                                        </button>
+                                  </div>
+                                </td>
+                              </tr>
+                              <% }); %>
+                                <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="stats-summary">
+                    <p><i class="fas fa-info-circle"></i> Total: <strong>
+                        <%= reports.length %>
+                      </strong> signalement(s)</p>
+                  </div>
+        </main>
+    </div>
+
+    <script>
+      function updateReportStatus(reportId, status) {
+        if (confirm(`Êtes-vous sûr de vouloir ${status === 'validé' ? 'valider' : 'rejeter'} ce signalement?`)) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/admin/reports/${reportId}/status`;
+
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'status';
+          input.value = status;
+
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+
+      function viewReportDetails(reportId) {
+        window.location.href = `/admin/reports/${reportId}`;
+      }
+    </script>
+</body>
+
+</html>

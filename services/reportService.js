@@ -1,57 +1,52 @@
 import * as reportRepository from '../repositories/reportRepository.js';
-import * as postRepository from '../repositories/postRepository.js';
-import notificationService from './notificationService.js';
+import * as notificationService from '../services/notificationService.js';
+import { createReportStateMachine } from './workflows/statusWorkflow.js';
 
 export const getAllReports = async () => {
   return await reportRepository.findAllReports();
 };
 
-// Matches controller: getReportDetail
-export const getReportDetails = async (id) => {
+export const getReportById = async (id) => {
   const report = await reportRepository.findReportById(id);
-  if (!report) throw new Error('Signalement non trouvé');
+  if (!report) throw new Error('Report non trouvé');
   return report;
 };
 
-export const submitReport = async (userId, reportData) => {
-  const post = await postRepository.findPostById(reportData.reportedPost);
-  if (!post) throw new Error('Post signalé introuvable');
-
+export const createReport = async (userId, reportData) => {
   return await reportRepository.createReport({
     ...reportData,
-    reporter: userId
+    reporter: userId,
+    status: 'en attente'
   });
 };
 
-export const validateReport = async (reportId) => {
-  const report = await reportRepository.updateReportStatus(reportId, 'validé');
-  if (!report) throw new Error('Signalement non trouvé');
+export const updateReportStatus = async (reportId, newStatus) => {
+  const report = await reportRepository.findReportById(reportId);
+  if (!report) throw new Error('Report non trouvé');
 
-  await notificationService.send(
-    report.reporter._id,
-    `Votre signalement a été validé.`,
-    'report'
-  );
+  const currentState = report.status || 'en attente';
 
-  if (report.reportedPost) {
-    const post = await postRepository.updatePostStatus(report.reportedPost, 'rejeté');
-    await notificationService.send(
-      post.author._id,
-      `Votre proposition a été rejetée suite à un signalement.`,
-      'post'
-    );
+  const stateMachine = createReportStateMachine(report, reportRepository);
+  
+  if (currentState === 'en attente') {
+    if (newStatus === 'validé') {
+      stateMachine.handle('APPROVE');
+    } else if (newStatus === 'rejeté') {
+      stateMachine.handle('REJECT');
+    } else {
+      throw new Error(`Invalid status: ${newStatus}. Must be 'validé' or 'rejeté'`);
+    }
+  } else {
+    throw new Error(`Cannot transition from ${currentState} to ${newStatus}. Report already processed.`);
   }
-  return report;
+
+  return await reportRepository.findReportById(reportId);
 };
 
-export const rejectReport = async (reportId) => {
-  const report = await reportRepository.updateReportStatus(reportId, 'rejeté');
-  if (!report) throw new Error('Signalement non trouvé');
+export const deleteReport = async (reportId) => {
+  const report = await reportRepository.findReportById(reportId);
+  if (!report) throw new Error('Report non trouvé');
 
-  await notificationService.send(
-    report.reporter._id,
-    `Votre signalement a été rejeté.`,
-    'report'
-  );
-  return report;
+  await reportRepository.deleteReportById(reportId);
+  return { message: 'Report supprimé' };
 };

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détails du Signalement - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  
+  <div class="dashboard-container">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="main-content">
+      <header class="page-header">
+        <div class="page-header-left">
+          <a href="/admin/reports" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+          </a>
+        </div>
+        <div>
+          <h1><i class="fas fa-flag"></i> Détails du Signalement</h1>
+          <p>ID: <code><%= report._id %></code></p>
+        </div>
+      </header>
+
+      <% if (success && success.length > 0) { %>
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle"></i> <%= success %>
+        </div>
+      <% } %>
+      <% if (error && error.length > 0) { %>
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle"></i> <%= error %>
+        </div>
+      <% } %>
+
+      <div class="detail-grid">
+        <!-- Main Report Card -->
+        <div class="detail-card main-info">
+          <div class="card-header">
+            <h2><i class="fas fa-flag"></i> Informations du Signalement</h2>
+            <span class="badge badge-<%= report.status.replace(' ', '-') %>">
+              <%= report.status %>
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="info-row">
+              <strong><i class="fas fa-tag"></i> Type:</strong>
+              <span class="badge badge-type-<%= report.reportType %>">
+                <i class="fas fa-<%= report.reportType === 'location' ? 'map-marker-alt' : 'comment-alt' %>"></i>
+                <%= report.reportType %>
+              </span>
+            </div>
+
+            <div class="info-row">
+              <strong><i class="fas fa-exclamation-circle"></i> Raison:</strong>
+              <span class="reason-badge"><%= report.reason %></span>
+            </div>
+
+            <% if (report.message) { %>
+              <div class="info-row">
+                <strong><i class="fas fa-comment-alt"></i> Message:</strong>
+                <div class="message-box">
+                  <p><%= report.message %></p>
+                </div>
+              </div>
+            <% } %>
+
+            <div class="info-row">
+              <strong><i class="fas fa-calendar-alt"></i> Date:</strong>
+              <span><%= new Date(report.date).toLocaleString('fr-FR') %></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reporter Card -->
+        <div class="detail-card author-info">
+          <div class="card-header">
+            <h2><i class="fas fa-user"></i> Reporter</h2>
+          </div>
+          <div class="card-body">
+            <div class="author-profile">
+              <i class="fas fa-user-circle fa-4x"></i>
+              <div>
+                <h3><%= report.reporter.nickname %></h3>
+                <p><%= report.reporter.email %></p>
+                <span class="badge badge-role-<%= report.reporter.role %>">
+                  <i class="fas fa-<%= report.reporter.role === 'admin' ? 'user-shield' : 'user' %>"></i>
+                  <%= report.reporter.role %>
+                </span>
+              </div>
+            </div>
+            <div class="info-row">
+              <strong><i class="fas fa-calendar-plus"></i> Membre depuis:</strong>
+              <span><%= new Date(report.reporter.createdAt).toLocaleDateString('fr-FR') %></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reported Post Card -->
+        <% if (report.reportedPost) { %>
+          <div class="detail-card reported-post-card">
+            <div class="card-header">
+              <h2><i class="fas fa-newspaper"></i> Post Signalé</h2>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <strong><i class="fas fa-tag"></i> Type:</strong>
+                <span class="badge badge-type-<%= report.reportedPost.type %>">
+                  <%= report.reportedPost.type === 'liveLocation' ? 'Live Location' : 'Community Post' %>
+                </span>
+              </div>
+
+              <% if (report.reportedPost.title) { %>
+                <div class="info-row">
+                  <strong><i class="fas fa-heading"></i> Titre:</strong>
+                  <span><%= report.reportedPost.title %></span>
+                </div>
+              <% } %>
+
+              <% if (report.reportedPost.description) { %>
+                <div class="info-row">
+                  <strong><i class="fas fa-align-left"></i> Description:</strong>
+                  <p class="description"><%= report.reportedPost.description %></p>
+                </div>
+              <% } %>
+
+              <div class="info-row">
+                <strong><i class="fas fa-user"></i> Auteur:</strong>
+                <span><%= report.reportedPost.author?.nickname || 'Inconnu' %></span>
+              </div>
+
+              <div class="info-row">
+                <strong><i class="fas fa-bus"></i> Bus:</strong>
+                <span class="badge badge-bus"><%= report.reportedPost.bus?.number || 'N/A' %></span>
+              </div>
+
+              <div class="info-row">
+                <strong><i class="fas fa-info-circle"></i> Statut:</strong>
+                <span class="badge badge-<%= report.reportedPost.status %>">
+                  <%= report.reportedPost.status %>
+                </span>
+              </div>
+
+              <a href="/admin/posts/<%= report.reportedPost._id %>" class="btn btn-info btn-block">
+                <i class="fas fa-eye"></i> Voir le post complet
+              </a>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="detail-card reported-post-card">
+            <div class="card-header">
+              <h2><i class="fas fa-newspaper"></i> Post Signalé</h2>
+            </div>
+            <div class="card-body">
+              <p class="text-muted">
+                <i class="fas fa-trash"></i> Le post signalé a été supprimé
+              </p>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Actions Card -->
+        <% if (report.status === 'en attente') { %>
+          <div class="detail-card actions-card">
+            <div class="card-header">
+              <h2><i class="fas fa-cogs"></i> Actions</h2>
+            </div>
+            <div class="card-body">
+              <form action="/admin/reports/<%= report._id %>/status" method="POST" style="margin-bottom: 1rem;">
+                <input type="hidden" name="status" value="validé">
+                <button type="submit" class="btn btn-success btn-block">
+                  <i class="fas fa-check"></i> Valider le signalement
+                </button>
+              </form>
+              <form action="/admin/reports/<%= report._id %>/status" method="POST" style="margin-bottom: 1rem;">
+                <input type="hidden" name="status" value="rejeté">
+                <button type="submit" class="btn btn-danger btn-block">
+                  <i class="fas fa-times"></i> Rejeter le signalement
+                </button>
+              </form>
+              <% if (report.reportedPost) { %>
+                <hr>
+                <p class="text-muted"><i class="fas fa-lightbulb"></i> Actions sur le post:</p>
+                <form action="/admin/posts/<%= report.reportedPost._id %>/delete" method="POST">
+                  <button type="submit" class="btn btn-warning btn-block" onclick="return confirm('Supprimer le post signalé?')">
+                    <i class="fas fa-trash-alt"></i> Supprimer le post
+                  </button>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Reporter History -->
+        <% if (reporterHistory && reporterHistory.length > 0) { %>
+          <div class="detail-card reports-card">
+            <div class="card-header">
+              <h2><i class="fas fa-history"></i> Historique du Reporter</h2>
+            </div>
+            <div class="card-body">
+              <p><i class="fas fa-info-circle"></i> Derniers signalements de cet utilisateur:</p>
+              <% reporterHistory.forEach(histReport => { %>
+                <div class="report-item">
+                  <div class="report-header">
+                    <strong><%= histReport.reason %></strong>
+                    <span class="badge badge-<%= histReport.status.replace(' ', '-') %>">
+                      <%= histReport.status %>
+                    </span>
+                  </div>
+                  <div class="report-body">
+                    <small>
+                      <i class="fas fa-calendar"></i> <%= new Date(histReport.date).toLocaleDateString('fr-FR') %>
+                    </small>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

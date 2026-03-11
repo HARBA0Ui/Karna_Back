@@ -1,11 +1,5 @@
 // swagger.js
 import swaggerJsdoc from 'swagger-jsdoc';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Fix __dirname in ES6 modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const options = {
   definition: {
@@ -13,10 +7,13 @@ const options = {
     info: {
       title: 'Bus Community API',
       version: '1.0.0',
-      description: 'Admin & Passenger API',
+      description: 'API for bus community platform with posts, reports, and live locations'
     },
     servers: [
-      { url: 'http://localhost:5000' }
+      {
+        url: 'http://localhost:5000',
+        description: 'Development server'
+      }
     ],
     components: {
       securitySchemes: {
@@ -24,16 +21,16 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT'
+        },
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'auth_token'
         }
       }
     }
   },
-  // Point to your route files
-  apis: [
-    path.join(__dirname, 'routes/*.js').replace(/\\/g, '/'),
-    path.join(__dirname, 'controllers/**/*.js').replace(/\\/g, '/')
-  ]
+  apis: ['./routes/*.js']
 };
 
-const specs = swaggerJsdoc(options);
-export default specs;
+export default swaggerJsdoc(options);

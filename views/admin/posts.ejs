@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Posts - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+  <%- include('../partials/navbar') %>
+
+    <div class="dashboard-container">
+      <%- include('../partials/sidebar') %>
+
+        <main class="main-content">
+          <header class="page-header">
+            <h1><i class="fas fa-newspaper"></i> Gestion des Posts</h1>
+            <p>Gérer et modérer les publications</p>
+          </header>
+
+          <% if (success && success.length> 0) { %>
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle"></i>
+              <%= success %>
+            </div>
+            <% } %>
+              <% if (error && error.length> 0) { %>
+                <div class="alert alert-danger">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <%= error %>
+                </div>
+                <% } %>
+                  <div class="filters-bar">
+                    <form method="GET" action="/admin/posts" class="filter-form">
+                      <div class="filter-group">
+                        <label for="status"><i class="fas fa-filter"></i> Statut:</label>
+                        <select name="status" id="status" onchange="this.form.submit()">
+                          <option value="proposé" <%=!currentStatus || currentStatus==='proposé' ? 'selected' : '' %>
+                            >Proposé</option>
+                          <option value="validé" <%=currentStatus==='validé' ? 'selected' : '' %>>Validé</option>
+                          <option value="rejeté" <%=currentStatus==='rejeté' ? 'selected' : '' %>>Rejeté</option>
+                        </select>
+                      </div>
+
+                      <div class="filter-group">
+                        <label for="type"><i class="fas fa-tag"></i> Type:</label>
+                        <select name="type" id="type" onchange="this.form.submit()">
+                          <option value="">Tous les types</option>
+                          <option value="CommunityPost" <%=currentType==='CommunityPost' ? 'selected' : '' %>>Community
+                            Post</option>
+                          <option value="liveLocation" <%=currentType==='liveLocation' ? 'selected' : '' %>>Live
+                            Location</option>
+                        </select>
+                      </div>
+
+                      <% if ((currentStatus && currentStatus !=='proposé' ) || currentType) { %>
+                        <a href="/admin/posts" class="btn btn-secondary">
+                          <i class="fas fa-undo"></i> Réinitialiser
+                        </a>
+                        <% } %>
+                    </form>
+                  </div>
+
+
+                  <div class="table-container">
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Type</th>
+                          <th>Titre/Description</th>
+                          <th>Auteur</th>
+                          <th>Statut</th>
+                          <th>Votes</th>
+                          <th>Date</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% if (posts.length===0) { %>
+                          <tr>
+                            <td colspan="9" class="text-center">
+                              <i class="fas fa-inbox"></i> Aucun post trouvé
+                            </td>
+                          </tr>
+                          <% } else { %>
+                            <% posts.forEach(post=> { %>
+                              <tr>
+                                <td><code><%= post._id.toString().slice(-6) %></code></td>
+                                <td>
+                                  <span class="badge badge-type-<%= post.type %>">
+                                    <i
+                                      class="fas fa-<%= post.type === 'liveLocation' ? 'map-marker-alt' : 'comment-alt' %>"></i>
+                                    <%= post.type==='liveLocation' ? 'Live' : 'Community' %>
+                                  </span>
+                                </td>
+                                <td>
+                                  <strong>
+                                    <%= post.title || post.name || 'N/A' %>
+                                  </strong>
+                                  <% if (post.description) { %>
+                                    <br><small>
+                                      <%= post.description.substring(0, 50) %>
+                                        <%= post.description.length> 50 ? '...' : '' %>
+                                    </small>
+                                    <% } %>
+                                </td>
+                                <td>
+                                  <div class="user-info-cell">
+                                    <i class="fas fa-user-circle"></i>
+                                    <div>
+                                      <strong>
+                                        <%= post.author.nickname %>
+                                      </strong>
+                                      <small>
+                                        <%= post.author.email %>
+                                      </small>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span class="badge badge-<%= post.status %>">
+                                    <%= post.status %>
+                                  </span>
+                                </td>
+                                <td>
+                                  <div class="votes-display">
+                                    <span class="upvotes"><i class="fas fa-arrow-up"></i>
+                                      <%= post.upvotes?.length || 0 %>
+                                    </span>
+                                    <span class="downvotes"><i class="fas fa-arrow-down"></i>
+                                      <%= post.downvotes?.length || 0 %>
+                                    </span>
+                                  </div>
+                                </td>
+                                <td>
+                                  <%= new Date(post.createdAt).toLocaleDateString('fr-FR') %>
+                                </td>
+                                <td>
+                                  <div class="action-buttons">
+                                    <% if (post.status==='proposé' ) { %>
+                                      <button class="btn btn-sm btn-success"
+                                        onclick="updateStatus('<%= post._id %>', 'validé')">
+                                        <i class="fas fa-check"></i> Valider
+                                      </button>
+                                      <button class="btn btn-sm btn-danger"
+                                        onclick="updateStatus('<%= post._id %>', 'rejeté')">
+                                        <i class="fas fa-times"></i> Rejeter
+                                      </button>
+                                      <% } %>
+                                        <button class="btn btn-sm btn-info" onclick="viewDetails('<%= post._id %>')">
+                                          <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deletePost('<%= post._id %>')">
+                                          <i class="fas fa-trash"></i>
+                                        </button>
+                                  </div>
+                                </td>
+                              </tr>
+                              <% }); %>
+                                <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="stats-summary">
+                    <p><i class="fas fa-info-circle"></i> Total: <strong>
+                        <%= posts.length %>
+                      </strong> post(s)</p>
+                  </div>
+        </main>
+    </div>
+
+    <!-- Hidden forms for POST requests -->
+    <div id="hidden-forms"></div>
+
+    <script>
+      function updateStatus(postId, status) {
+        if (confirm(`Êtes-vous sûr de vouloir ${status === 'validé' ? 'valider' : 'rejeter'} ce post?`)) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/admin/posts/${postId}/status`;
+
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'status';
+          input.value = status;
+
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+
+      function deletePost(postId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce post? Cette action est irréversible.')) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/admin/posts/${postId}/delete`;
+
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+
+      function viewDetails(postId) {
+        window.location.href = `/admin/posts/${postId}`;
+      }
+    </script>
+</body>
+
+</html>

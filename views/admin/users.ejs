@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Utilisateurs - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  
+  <div class="dashboard-container">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="main-content">
+      <header class="page-header">
+        <h1><i class="fas fa-users"></i> Gestion des Utilisateurs</h1>
+        <p>Consulter et gérer les utilisateurs de la plateforme</p>
+      </header>
+
+      <% if (success && success.length > 0) { %>
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle"></i> <%= success %>
+        </div>
+      <% } %>
+      <% if (error && error.length > 0) { %>
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle"></i> <%= error %>
+        </div>
+      <% } %>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Utilisateur</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Date d'inscription</th>
+              <th>Statistiques</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (users.length === 0) { %>
+              <tr>
+                <td colspan="7" class="text-center">
+                  <i class="fas fa-inbox"></i> Aucun utilisateur trouvé
+                </td>
+              </tr>
+            <% } else { %>
+              <% users.forEach(user => { %>
+                <tr>
+                  <td><code><%= user._id.toString().slice(-6) %></code></td>
+                  <td>
+                    <div class="user-info-cell">
+                      <i class="fas fa-user-circle fa-2x"></i>
+                      <div>
+                        <strong><%= user.nickname %></strong>
+                        <% if (user.role === 'admin') { %>
+                          <i class="fas fa-crown"></i>
+                        <% } %>
+                      </div>
+                    </div>
+                  </td>
+                  <td><%= user.email %></td>
+                  <td>
+                    <span class="badge badge-role-<%= user.role %>">
+                      <i class="fas fa-<%= user.role === 'admin' ? 'user-shield' : user.role === 'driver' ? 'bus' : 'user' %>"></i>
+                      <%= user.role %>
+                    </span>
+                  </td>
+                  <td><%= new Date(user.createdAt).toLocaleDateString('fr-FR') %></td>
+                  <td>
+                    <div class="user-stats">
+                      <small>
+                        <i class="fas fa-newspaper"></i> Posts: <strong>0</strong>
+                        <i class="fas fa-flag"></i> Signalements: <strong>0</strong>
+                      </small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-info" onclick="viewUserDetails('<%= user._id %>')">
+                        <i class="fas fa-eye"></i> Détails
+                      </button>
+                      <% if (user.role !== 'admin') { %>
+                        <button class="btn btn-sm btn-warning" onclick="toggleUserStatus('<%= user._id %>')">
+                          <i class="fas fa-ban"></i> Suspendre
+                        </button>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stats-summary">
+        <p><i class="fas fa-info-circle"></i> Total: <strong><%= users.length %></strong> utilisateur(s)</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function viewUserDetails(userId) {
+      alert('Détails de l\'utilisateur: ' + userId + '\n(À implémenter)');
+    }
+
+    function toggleUserStatus(userId) {
+      if (confirm('Êtes-vous sûr de vouloir suspendre cet utilisateur?')) {
+        alert('Suspension de l\'utilisateur: ' + userId + '\n(À implémenter)');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -9,7 +9,7 @@ async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
   const pwd = await bcrypt.hash('admin123', 10);
   await User.create({ nickname: 'Admin', email: 'admin@example.com', pwd, role: 'admin' });
-  console.log('✅ Admin créé');
+  console.log(' Admin créé');
   process.exit();
 }
 

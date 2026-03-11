@@ -1,18 +1,19 @@
 import { Router } from 'express';
 import { login, logout, register } from '../controllers/authController.js';
+import { registerValidator, loginValidator } from '../middleware/validators/authValidator.js';
+import { handleValidationErrors } from '../middleware/validators/validationHandler.js';
 
 const router = Router();
-router.post('/login', login);
-router.post('/logout', logout);
-router.post('/register', register);
 
-export default router;
+router.post('/logout', logout);
+router.post('/login', loginValidator, handleValidationErrors, login);
+router.post('/register', registerValidator, handleValidationErrors, register);
 
 /**
  * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Register as a passenger
+ *     summary: Register a new passenger
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -27,18 +28,41 @@ export default router;
  *             properties:
  *               nickname:
  *                 type: string
+ *                 example: john_doe
  *               email:
  *                 type: string
  *                 format: email
+ *                 example: john@example.com
  *               pwd:
  *                 type: string
  *                 format: password
+ *                 example: password123
  *     responses:
  *       201:
  *         description: Registration successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     nickname:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                 token:
+ *                   type: string
+ *                 message:
+ *                   type: string
  *       400:
- *         description: Input/validation error
- */
+ *         description: Validation error or email already exists
+*/
 
 /**
  * @swagger
@@ -59,15 +83,37 @@ export default router;
  *               email:
  *                 type: string
  *                 format: email
+ *                 example: john@example.com
  *               pwd:
  *                 type: string
  *                 format: password
+ *                 example: password123
  *     responses:
  *       200:
  *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     nickname:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                 token:
+ *                   type: string
+ *                 message:
+ *                   type: string
  *       400:
  *         description: Invalid credentials
- */
+*/
 
 /**
  * @swagger
@@ -76,8 +122,20 @@ export default router;
  *     summary: Logout user
  *     tags: [Auth]
  *     security:
+ *       - bearerAuth: []
  *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: Logout successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
  */
+
+export default router;

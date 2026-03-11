@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion Admin - Bus Community</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style2.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-form">
+      <h1><i class="fas fa-bus"></i> Bus Community</h1>
+      <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
+
+      <!--  FIXED: Show error messages -->
+      <% if (locals.error && error.length > 0) { %>
+        <div class="error-message">
+          <i class="fas fa-exclamation-triangle"></i> 
+          <%= error[0] %>
+        </div>
+      <% } %>
+      
+      <!--  FIXED: Show success messages -->
+      <% if (locals.success && success.length > 0) { %>
+        <div class="success-message">
+          <i class="fas fa-check-circle"></i> 
+          <%= success[0] %>
+        </div>
+      <% } %>
+
+      <form action="/admin/login" method="POST" id="loginForm">
+        <div class="form-group">
+          <label for="email">
+            <i class="fas fa-envelope"></i> Email:
+          </label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            placeholder="admin@buscommunity.com"
+            autocomplete="email"
+            value="<%= locals.email || '' %>"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="mdp">
+            <i class="fas fa-lock"></i> Mot de passe:
+          </label>
+          <div class="password-input">
+            <input 
+              type="password" 
+              id="mdp" 
+              name="mdp" 
+              required 
+              placeholder="••••••••"
+              autocomplete="current-password"
+            >
+            <button type="button" class="toggle-password" onclick="togglePassword()">
+              <i class="fas fa-eye" id="toggleIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          <i class="fas fa-sign-in-alt"></i> Se connecter
+        </button>
+      </form>
+
+      <div class="login-help">
+        <p><i class="fas fa-info-circle"></i> Utilisez vos identifiants administrateur</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById('mdp');
+      const toggleIcon = document.getElementById('toggleIcon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+      }
+    }
+
+    // Auto-hide success/error messages after 5 seconds
+    setTimeout(() => {
+      const alerts = document.querySelectorAll('.error-message, .success-message');
+      alerts.forEach(alert => {
+        alert.style.transition = 'opacity 0.5s';
+        alert.style.opacity = '0';
+        setTimeout(() => alert.remove(), 500);
+      });
+    }, 5000);
+  </script>
+</body>
+</html>
